@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Placar Remoto - O marcador de pontuação inteligente controlado por Bluetooth e com narração por voz em tempo real.">
+    <title>Placar Remoto - Marcador de Pontuação Inteligente</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #080b11;
+            --bg-grid: rgba(99, 102, 241, 0.03);
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+            --accent-blue: #3b82f6;
+            --accent-pink: #ec4899;
+            --accent-pink-gradient: linear-gradient(135deg, #f472b6 0%, #db2777 100%);
+            --accent-blue-gradient: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+            --glow-color: rgba(99, 102, 241, 0.2);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 40%),
+                linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        .logo-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.4);
+        }
+        .logo-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            transition: var(--transition);
+        }
+        .nav-btn:hover {
+            background: #ffffff;
+            color: var(--bg-color) !important;
+            border-color: #ffffff;
+            box-shadow: 0 10px 20px -10px rgba(255, 255, 255, 0.2);
+        }
+        /* Hero Section */
+        .hero {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 5rem 5% 8rem 5%;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+        }
+        .hero-content {
+            z-index: 2;
+        }
+        .badge-new {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--primary-light);
+            padding: 0.35rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 3.5rem;
+            line-height: 1.15;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 60%, #9ca3af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-desc {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            max-width: 580px;
+        }
+        .hero-ctas {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 2rem;
+            font-weight: 600;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            box-shadow: 0 12px 24px -8px rgba(99, 102, 241, 0.5);
+            border: none;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px -4px rgba(99, 102, 241, 0.6);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        /* Interactive Scoreboard Mockup */
+        .mockup-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        .scoreboard-mockup {
+            background: #111622;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            width: 100%;
+            max-width: 460px;
+            padding: 2rem;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8),
+                        0 0 50px -10px var(--glow-color);
+            position: relative;
+        }
+        .mockup-title {
+            text-align: center;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        .mockup-display {
+            background: #07090e;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .team-section {
+            flex: 1;
+            text-align: center;
+        }
+        .team-name-a {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #60a5fa;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .team-name-b {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #f472b6;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .score-num {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 4rem;
+            font-weight: bold;
+            line-height: 1;
+            transition: var(--transition);
+        }
+        .score-a {
+            color: #3b82f6;
+            text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .score-b {
+            color: #ec4899;
+            text-shadow: 0 0 15px rgba(236, 72, 153, 0.5);
+        }
+        .divider-dots {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--text-muted);
+            font-size: 2.5rem;
+            animation: blink 1.5s infinite step-end;
+        }
+        @keyframes blink {
+            50% { opacity: 0.3; }
+        }
+        .mockup-controls {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .ctrl-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+            padding: 0.75rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+        .ctrl-btn-a:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+        .ctrl-btn-b:hover {
+            background: rgba(236, 72, 153, 0.1);
+            border-color: rgba(236, 72, 153, 0.3);
+            color: #f472b6;
+        }
+        .ctrl-btn-reset {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-secondary);
+        }
+        .ctrl-btn-reset:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        /* Features Section */
+        .features {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 2;
+        }
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 4rem auto;
+        }
+        .section-header h2 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.2);
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.5),
+                        0 0 30px -15px var(--glow-color);
+        }
+        .feature-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-light);
+            margin-bottom: 1.5rem;
+        }
+        .feature-card h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #ffffff;
+        }
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        /* How it Works / Interactive Bluetooth Section */
+        .how-it-works {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 6rem 5%;
+            z-index: 2;
+            position: relative;
+        }
+        .how-box {
+            background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 4rem;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        .how-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .step {
+            display: flex;
+            gap: 1.25rem;
+        }
+        .step-num {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+        }
+        .step-content h4 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+            color: #ffffff;
+        }
+        .step-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        .bt-visual-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .phone-mockup {
+            border: 8px solid #1e293b;
+            border-radius: 40px;
+            background: #020617;
+            width: 240px;
+            height: 440px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+        .bt-wave {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid rgba(99, 102, 241, 0.4);
+            animation: pingWave 2.5s infinite ease-out;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .bt-wave-2 {
+            animation-delay: 1.2s;
+        }
+        @keyframes pingWave {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3.5); opacity: 0; }
+        }
+        .bt-device-remote {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            width: 70px;
+            height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0.75rem 0;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+        .remote-btn {
+            width: 36px;
+            height: 24px;
+            border-radius: 6px;
+            background: #334155;
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .remote-btn-main {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            border: none;
+        }
+        .remote-btn:hover {
+            background: #475569;
+        }
+        .remote-btn-main:hover {
+            box-shadow: 0 0 15px var(--primary-light);
+        }
+        /* Footer */
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(7, 9, 14, 0.8);
+            padding: 4rem 5% 3rem 5%;
+            z-index: 2;
+            position: relative;
+        }
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 3rem;
+            width: 100%;
+        }
+        /* Mobile Adjustments */
+        @media (max-width: 968px) {
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding-top: 3rem;
+                padding-bottom: 5rem;
+            }
+            .hero-desc {
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .hero-ctas {
+                justify-content: center;
+            }
+            h1 {
+                font-size: 2.75rem;
+            }
+            .how-box {
+                grid-template-columns: 1fr;
+                padding: 2.5rem;
+                gap: 3rem;
+            }
+            .bt-visual-container {
+                order: -1;
+            }
+        }
+        @media (max-width: 576px) {
+            h1 {
+                font-size: 2.25rem;
+            }
+            .nav-links {
+                display: none; /* simple hidden for mobile, could add menu in full dev */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <nav>
+        <a href="#" class="logo">
+            <div class="logo-box">
+                <span class="logo-text" style="font-size: 1.25rem; font-weight: 800;">P</span>
+            </div>
+            <span class="logo-text">Placar</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#recursos">Recursos</a></li>
+            <li><a href="#como-funciona">Como Funciona</a></li>
+            <li><a href="privacy.html" class="nav-btn">Política de Privacidade</a></li>
+        </ul>
+    </nav>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <div class="badge-new">
+                <span>✦ Versão 0.1.0 Disponível</span>
+            </div>
+            <h1>Placar Remoto.<br>Controle Inteligente Sem Fios.</h1>
+            <p class="hero-desc">O marcador de pontuação moderno e multiplataforma controlado por Bluetooth e com narração por voz inteligente integrada para qualquer partida esportiva.</p>
+            <div class="hero-ctas">
+                <a href="#como-funciona" class="btn btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Ver Como Funciona
+                </a>
+                <a href="privacy.html" class="btn btn-secondary">Política de Privacidade</a>
+            </div>
+        </div>
+        <!-- Interactive Scoreboard Mockup -->
+        <div class="mockup-container">
+            <div class="scoreboard-mockup">
+                <div class="mockup-title">Placar Interativo (Demonstração)</div>
+                <div class="mockup-display">
+                    <div class="team-section">
+                        <div class="team-name-a" id="team-name-a">TIME AZUL</div>
+                        <div class="score-num score-a" id="score-a-val">00</div>
+                    </div>
+                    <div class="divider-dots">:</div>
+                    <div class="team-section">
+                        <div class="team-name-b" id="team-name-b">TIME ROSA</div>
+                        <div class="score-num score-b" id="score-b-val">00</div>
+                    </div>
+                </div>
+                <div class="mockup-controls">
+                    <button class="ctrl-btn ctrl-btn-a" onclick="changeScore('a', 1)">+1 Azul</button>
+                    <button class="ctrl-btn ctrl-btn-b" onclick="changeScore('b', 1)">+1 Rosa</button>
+                    <button class="ctrl-btn ctrl-btn-reset" onclick="resetMockup()">Resetar</button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Features Section -->
+    <section class="features" id="recursos">
+        <div class="section-header">
+            <h2>Tecnologia focada no jogo</h2>
+            <p>Esqueça a tela do smartphone durante a partida. O Placar cuida de tudo com recursos inteligentes e integrados.</p>
+        </div>
+        
+        <div class="features-grid">
+            <!-- Feature 1: Bluetooth -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5-5 5M19 7l-5 5 5 5M12 7v10"/></svg>
+                </div>
+                <h3>Controle BT de 3 Botões</h3>
+                <p>Compatível com pequenos controles remotos Bluetooth portáteis. Permite somar pontos e gerenciar o cronômetro diretamente de qualquer lugar da quadra.</p>
+            </div>
+            <!-- Feature 2: TTS -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                </div>
+                <h3>Narração por Voz (TTS)</h3>
+                <p>O aplicativo utiliza síntese de voz (Text-To-Speech) nativa para ler o placar em tempo real sempre que há alterações. Configure o tom e a velocidade da fala.</p>
+            </div>
+            <!-- Feature 3: History -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <h3>Histórico de Partidas</h3>
+                <p>Suas rodadas registradas automaticamente no armazenamento local. Salve, acompanhe resultados e consulte pontuações passadas a qualquer momento.</p>
+            </div>
+            <!-- Feature 4: Privacy -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3>Privacidade Garantida</h3>
+                <p>Sem anúncios, sem rastreadores, sem nuvem. O aplicativo funciona 100% off-line com armazenamento local de dados, garantindo privacidade e controle total de seus dados.</p>
+            </div>
+        </div>
+    </section>
+    <!-- How it Works Section -->
+    <section class="how-it-works" id="como-funciona">
+        <div class="how-box">
+            <div class="how-steps">
+                <div class="section-header" style="text-align: left; margin: 0 0 2rem 0;">
+                    <h2 style="font-size: 2rem;">Como Funciona</h2>
+                    <p>O fluxo de controle integrado é configurado em segundos.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>Pareie o Controle Bluetooth</h4>
+                        <p>Conecte o seu controle portátil (como um acionador de selfie de 3 botões) nas configurações de Bluetooth do seu dispositivo.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h4>Configure e Inicie</h4>
+                        <p>Abra o Placar, ajuste os nomes dos times e as preferências de narração por voz (TTS).</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h4>Foque na Partida</h4>
+                        <p>Use os botões físicos do controle remoto para alterar o placar, enquanto o áudio anuncia o andamento do jogo automaticamente.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Interactive Bluetooth Connection Animation -->
+            <div class="bt-visual-container">
+                <div class="bt-wave"></div>
+                <div class="bt-wave bt-wave-2"></div>
+                <div class="bt-device-remote" style="margin-right: 1.5rem;">
+                    <button class="remote-btn" onclick="animatePress(this, 'prev')"></button>
+                    <button class="remote-btn remote-btn-main" onclick="animatePress(this, 'main')"></button>
+                    <button class="remote-btn" onclick="animatePress(this, 'next')"></button>
+                </div>
+                <div class="phone-mockup">
+                    <div style="color: #6366f1; font-weight: bold; font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.25rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5-5 5M19 7l-5 5 5 5M12 7v10"/></svg>
+                        BT CONECTADO
+                    </div>
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; width: 100%; text-align: center;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">ÚLTIMO EVENTO</div>
+                        <div id="bt-log" style="font-size: 0.8rem; color: #ffffff; font-family: monospace; font-weight: bold;">AGUARDANDO BOTÃO...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <a href="#" class="logo">
+                <div class="logo-box">
+                    <span class="logo-text" style="font-size: 1.25rem; font-weight: 800;">P</span>
+                </div>
+                <span class="logo-text">Placar</span>
+            </a>
+            <div class="footer-links">
+                <a href="#recursos">Recursos</a>
+                <a href="#como-funciona">Como Funciona</a>
+                <a href="privacy.html">Política de Privacidade</a>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2026 Placar. Desenvolvido por Gean Ferreira (GF Solutions). Todos os direitos reservados.</p>
+        </div>
+    </footer>
+    <!-- Interactive Javascript Logic -->
+    <script>
+        let scoreA = 0;
+        let scoreB = 0;
+        function updateDisplay() {
+            document.getElementById('score-a-val').innerText = String(scoreA).padStart(2, '0');
+            document.getElementById('score-b-val').innerText = String(scoreB).padStart(2, '0');
+        }
+        function changeScore(team, amount) {
+            if (team === 'a') {
+                scoreA = Math.max(0, scoreA + amount);
+            } else if (team === 'b') {
+                scoreB = Math.max(0, scoreB + amount);
+            }
+            updateDisplay();
+        }
+        function resetMockup() {
+            scoreA = 0;
+            scoreB = 0;
+            updateDisplay();
+        }
+        function animatePress(btn, type) {
+            btn.style.transform = 'scale(0.9)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 100);
+            const logElement = document.getElementById('bt-log');
+            if (type === 'prev') {
+                logElement.innerText = "BT_PREV: +1 AZUL";
+                logElement.style.color = '#60a5fa';
+                changeScore('a', 1);
+            } else if (type === 'next') {
+                logElement.innerText = "BT_NEXT: +1 ROSA";
+                logElement.style.color = '#f472b6';
+                changeScore('b', 1);
+            } else if (type === 'main') {
+                logElement.innerText = "BT_CLICK: PLAY/PAUSE";
+                logElement.style.color = '#34d399';
+            }
+        }
+    </script>
+</body>
+</html>
